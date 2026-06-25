@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Timeline ✦</title>
+  <meta name="theme-color" content="#e8768e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Our Timeline" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <style>
+    /* ── Bundled fonts (offline) — replaces the Google Fonts CDN link ── */
+    @font-face { font-family:'Lato'; font-style:normal; font-weight:300;
+      src:url('fonts/lato-300.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Lato'; font-style:normal; font-weight:400;
+      src:url('fonts/lato-400.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Lato'; font-style:normal; font-weight:700;
+      src:url('fonts/lato-700.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Playfair Display'; font-style:normal; font-weight:400;
+      src:url('fonts/playfair-normal.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Playfair Display'; font-style:normal; font-weight:600;
+      src:url('fonts/playfair-normal.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Playfair Display'; font-style:italic; font-weight:400;
+      src:url('fonts/playfair-italic.woff2') format('woff2'); font-display:swap; }
+    @font-face { font-family:'Playfair Display'; font-style:italic; font-weight:600;
+      src:url('fonts/playfair-italic.woff2') format('woff2'); font-display:swap; }
+
+    :root {
+      --rose:      #e8768e;
+      --blush:     #fce8ed;
+      --cream:     #fdf7f2;
+      --gold:      #c9965a;
+      --text-dark: #3d1f2c;
+      --text-mid:  #7a4f60;
+      --text-soft: #b08090;
+      --card-bg:   rgba(255,255,255,0.88);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      font-family: 'Lato', sans-serif;
+      color: var(--text-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 6rem;
+    }
+
+    /* ── Stars ── */
+    #stars-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── App header ── */
+    #app-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(253,247,242,0.93);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 0.85rem 1.2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid #f4a0b022;
+    }
+
+    #app-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem; font-weight: 400;
+      background: linear-gradient(135deg, var(--rose), var(--gold), #c9a0dc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #app-header h1 em { font-style: italic; font-weight: 600; }
+
+    .hdr-btn {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.25rem; padding: 0.4rem;
+      border-radius: 50%; color: var(--text-soft);
+      min-width: 42px; min-height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .hdr-btn:active { background: #f4a0b020; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 52vh; padding: 3rem 2rem 3.5rem;
+      text-align: center;
+    }
+
+    .hero-petal {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 30%, #fde8ed88 0%, transparent 65%),
+        radial-gradient(ellipse at 20% 80%, #ede0f755 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, #fde8ed44 0%, transparent 50%);
+    }
+
+    .crown {
+      font-size: 1.6rem; letter-spacing: 0.4em;
+      color: var(--rose); opacity: 0.65; margin-bottom: 1.2rem;
+      animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+
+    .hero h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.6rem, 9vw, 4.5rem);
+      font-weight: 400; line-height: 1.1;
+      background: linear-gradient(135deg, var(--rose), var(--gold), #c9a0dc);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.5rem;
+    }
+
+    .hero h2 em { font-style: italic; font-weight: 600; }
+
+    .hero-sub {
+      font-family: 'Playfair Display', serif;
+      font-style: italic; font-size: 1rem;
+      color: var(--text-soft); margin-bottom: 1.8rem;
+    }
+
+    .hero-since {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--card-bg);
+      border: 1.5px solid #f4a0b050; border-radius: 100px;
+      padding: 0.5rem 1.2rem;
+      font-size: 0.8rem; color: var(--text-mid);
+      font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      box-shadow: 0 4px 20px #e8768e14;
+    }
+
+    .dot {
+      width: 7px; height: 7px; background: var(--rose);
+      border-radius: 50%; animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.6} }
+
+    /* ── Timeline ── */
+    .tl-section {
+      position: relative; z-index: 1;
+      max-width: 760px; margin: 0 auto; padding: 1.5rem 1.2rem 2rem;
+    }
+
+    .tl-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.85rem; color: var(--text-soft);
+      letter-spacing: 0.25em; text-transform: uppercase;
+      text-align: center; margin-bottom: 2.5rem;
+    }
+
+    .timeline { position: relative; padding-left: 2.4rem; }
+
+    .timeline::before {
+      content: ''; position: absolute;
+      left: 0.65rem; top: 0.5rem; bottom: 0.5rem; width: 2px;
+      background: linear-gradient(to bottom, #f4a0b0, #c9a0dc, #f4a0b0);
+      opacity: 0.4; border-radius: 2px;
+    }
+
+    /* ── Moment card ── */
+    .moment {
+      position: relative; margin-bottom: 1.8rem;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .moment.visible { opacity: 1; transform: none; }
+
+    .moment::before {
+      content: ''; position: absolute;
+      left: -1.75rem; top: 1.15rem;
+      width: 12px; height: 12px;
+      background: white; border: 2.5px solid var(--rose);
+      border-radius: 50%; box-shadow: 0 0 0 4px #f4a0b018;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1.5px solid #f4a0b030; border-radius: 16px;
+      padding: 1.1rem 1.3rem;
+      box-shadow: 0 4px 24px #3d1f2c07;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+
+    .card-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card-header { flex: 1; min-width: 0; }
+
+    .card-date {
+      display: inline-block;
+      font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--rose); background: #fde8ed;
+      border-radius: 100px; padding: 0.2rem 0.7rem;
+      margin-bottom: 0.35rem; white-space: nowrap;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--text-dark); line-height: 1.3;
+    }
+
+    .card-body {
+      font-size: 0.92rem; line-height: 1.72;
+      color: var(--text-mid); white-space: pre-line;
+    }
+
+    .btn-edit {
+      background: none; border: none; cursor: pointer;
+      font-size: 0.95rem; color: var(--text-soft);
+      border-radius: 8px; opacity: 0.55;
+      min-width: 34px; min-height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: opacity 0.2s;
+    }
+    .btn-edit:active { opacity: 1; background: #f4a0b015; }
+
+    /* ── Photo ── */
+    .photo-slot { margin-top: 1rem; border-radius: 10px; overflow: hidden; }
+    .photo-slot img {
+      width: 100%; display: block; height: auto;
+      max-height: 380px; object-fit: cover; border-radius: 10px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative; z-index: 1; text-align: center;
+      padding: 2rem; color: var(--text-soft); font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+    footer span { color: var(--rose); }
+
+    /* ── FAB ── */
+    #fab {
+      position: fixed; bottom: 1.8rem; right: 1.4rem;
+      width: 58px; height: 58px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--rose), #c9a0dc);
+      color: white; font-size: 1.9rem; border: none; cursor: pointer;
+      z-index: 50; box-shadow: 0 4px 22px #e8768e45;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1; transition: transform 0.18s, box-shadow 0.18s;
+    }
+    #fab:active { transform: scale(0.91); box-shadow: 0 2px 10px #e8768e30; }
+
+    /* ── Modal overlay ── */
+    #modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(61,31,44,0.45);
+      z-index: 200;
+      display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.28s, visibility 0.28s;
+    }
+    #modal-overlay.open { opacity: 1; visibility: visible; }
+
+    /* ── Modal sheet ── */
+    #modal {
+      background: var(--cream); width: 100%;
+      max-height: 93vh; border-radius: 22px 22px 0 0;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+    }
+    #modal-overlay.open #modal { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px; border-radius: 2px;
+      background: #d5b0bb; margin: 0.9rem auto 0; flex-shrink: 0;
+    }
+
+    .modal-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1.4rem 0.4rem; flex-shrink: 0;
+    }
+    .modal-hdr h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 400; color: var(--text-dark);
+    }
+    #modal-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 1.05rem; color: var(--text-soft); padding: 0.4rem;
+      border-radius: 50%;
+      min-width: 36px; min-height: 36px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .modal-body { padding: 0.8rem 1.4rem; flex: 1; }
+
+    /* Fields */
+    .field { margin-bottom: 1.1rem; }
+    .field label {
+      display: block; font-size: 0.73rem; font-weight: 700;
+      color: var(--text-soft); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 0.35rem;
+    }
+
+    .field input[type="date"],
+    .field input[type="text"],
+    .field textarea {
+      width: 100%; padding: 0.7rem 0.95rem;
+      border: 1.5px solid #ddb8c5;
+      border-radius: 12px; background: white;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.95rem; color: var(--text-dark);
+      outline: none; appearance: none; -webkit-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: var(--rose); box-shadow: 0 0 0 3px #e8768e14;
+    }
+    .field textarea { min-height: 110px; resize: vertical; line-height: 1.6; }
+
+    .date-row { display: flex; gap: 0.6rem; align-items: flex-start; }
+    .date-row input[type="date"] { flex: 0 0 auto; width: auto; }
+    .date-row input[type="text"] { flex: 1; }
+
+    /* Photo picker */
+    #f-photo { display: none; }
+    .photo-pick-btn {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.7rem 1rem;
+      border: 1.5px dashed #ddb8c5; border-radius: 12px;
+      background: #fde8ed22; cursor: pointer;
+      font-size: 0.9rem; color: var(--text-mid);
+      font-family: 'Lato', sans-serif;
+      width: 100%; text-align: left;
+      transition: border-color 0.2s;
+    }
+    .photo-pick-btn:active { border-color: var(--rose); }
+
+    #photo-preview { margin-top: 0.7rem; display: none; border-radius: 10px; overflow: hidden; }
+    #photo-preview img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; display: block; }
+
+    #btn-remove-photo, #btn-remove-video {
+      display: none; margin-top: 0.4rem;
+      background: none; border: none; cursor: pointer;
+      font-size: 0.78rem; color: var(--text-soft);
+      text-decoration: underline; padding: 0.15rem 0;
+      font-family: 'Lato', sans-serif;
+    }
+
+    /* Video picker */
+    #f-video { display: none; }
+    #video-preview { margin-top: 0.7rem; display: none; border-radius: 10px; overflow: hidden; }
+    #video-preview video { width: 100%; max-height: 200px; border-radius: 10px; display: block; background: #000; }
+
+    /* Card video */
+    .video-slot { margin-top: 1rem; border-radius: 10px; overflow: hidden; }
+    .video-slot video {
+      width: 100%; display: block; max-height: 400px;
+      border-radius: 10px; background: #000;
+    }
+
+    /* Modal footer */
+    .modal-ftr {
+      padding: 0.9rem 1.4rem 1.6rem;
+      display: flex; gap: 0.7rem; flex-shrink: 0;
+      border-top: 1px solid #f4a0b018;
+    }
+    #btn-delete {
+      background: none; border: 1.5px solid #e8768e55;
+      color: var(--rose); border-radius: 100px;
+      padding: 0.7rem 1.1rem; font-size: 0.85rem;
+      font-family: 'Lato', sans-serif; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.04em;
+    }
+    #btn-save {
+      flex: 1; padding: 0.8rem;
+      background: linear-gradient(135deg, var(--rose), #c9a0dc);
+      color: white; border: none; border-radius: 100px;
+      font-family: 'Lato', sans-serif; font-size: 0.95rem;
+      font-weight: 700; cursor: pointer; letter-spacing: 0.06em;
+    }
+    #btn-save:active { opacity: 0.88; }
+
+    /* Desktop centering for modal */
+    @media (min-width: 600px) {
+      #modal-overlay { align-items: center; }
+      #modal { max-width: 500px; margin: 0 auto; border-radius: 22px; max-height: 88vh; }
+      .hero { min-height: 65vh; }
+    }
+
+    @media (max-width: 420px) {
+      .timeline { padding-left: 2rem; }
+      .timeline::before { left: 0.5rem; }
+      .moment::before { left: -1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- ══ HEADER ══ -->
+<header id="app-header">
+  <h1>Our <em>Timeline</em></h1>
+  <button class="hdr-btn" id="btn-export" title="Export PDF">📄</button>
+</header>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-petal"></div>
+  <div class="crown">✦ ✦ ✦</div>
+  <h2>Our <em>Story</em></h2>
+  <p class="hero-sub">every little moment that brought us here</p>
+  <div class="hero-since">
+    <span class="dot"></span>
+    Our journey since the very first message
+  </div>
+</section>
+
+<!-- ══ TIMELINE ══ -->
+<section class="tl-section">
+  <p class="tl-heading">Our Journey</p>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<footer>made with <span>♡</span> · just for us</footer>
+
+<!-- ══ FAB ══ -->
+<button id="fab" aria-label="Add a moment">+</button>
+
+<!-- ══ MODAL ══ -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-el">
+  <div id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <h2 id="modal-title-el">New moment</h2>
+      <button id="modal-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Date</label>
+        <div class="date-row">
+          <input type="date" id="f-date" title="Pick date for sorting" />
+          <input type="text" id="f-display-date" placeholder="e.g. June 8 – 9, 2026" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-title">Title</label>
+        <input type="text" id="f-title" placeholder="Give this moment a name…" maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="f-body">Description</label>
+        <textarea id="f-body" placeholder="What happened?"></textarea>
+      </div>
+      <div class="field">
+        <label>Photo (optional)</label>
+        <button type="button" class="photo-pick-btn" id="btn-pick-photo">
+          📷 Choose from gallery
+        </button>
+        <input type="file" id="f-photo" accept="image/*" />
+        <div id="photo-preview"><img id="preview-img" src="" alt="Preview" /></div>
+        <button type="button" id="btn-remove-photo">✕ Remove photo</button>
+      </div>
+      <div class="field">
+        <label>Video (optional)</label>
+        <button type="button" class="photo-pick-btn" id="btn-pick-video">
+          🎬 Choose a video
+        </button>
+        <input type="file" id="f-video" accept="video/*" />
+        <div id="video-preview"><video id="preview-video" controls playsinline preload="metadata"></video></div>
+        <button type="button" id="btn-remove-video">✕ Remove video</button>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button id="btn-delete" style="display:none">Delete</button>
+      <button id="btn-save">Save ♡</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   SEED DATA  (all existing moments, taken from the page)
+══════════════════════════════════════════════════════ */
+const SEED = [
+  {
+    id: 's1', sortDate: '2026-06-06', displayDate: 'June 6, 2026',
+    title: 'The Question That Started Everything',
+    body: `You reached out on Bumble and asked me about my goals for 2026.\nI'd turned off my notifications on that day, so there was a bit of delay in my response...`,
+    photo: 'photos/june6.jpg', special: false
+  },
+  {
+    id: 's2', sortDate: '2026-06-07', displayDate: 'June 7, 2026',
+    title: 'Goals, Dreams & Joe Miller',
+    body: `I replied, and we ended up in the loveliest conversation —\nsharing our ambitions, our thoughts, and somehow landing on Joe Miller. I was truly surprised by your curiosity.`,
+    photo: 'photos/june7.jpg', special: false
+  },
+  {
+    id: 's3', sortDate: '2026-06-08', displayDate: 'June 8 – 9, 2026',
+    title: 'Late Nights & Long Conversations',
+    body: `We talked about everything — truly everything.\nYou were deep in a project and barely sleeping,\nyet you kept making time for us. I loved that about you already. You were open to talk. And your responses were meaningful.`,
+    photo: 'photos/june89.png', special: false
+  },
+  {
+    id: 's4', sortDate: '2026-06-10', displayDate: 'June 10, 2026',
+    title: 'The Day I Asked You Out ♡',
+    body: `It was the time. I took a deep breath and asked. And you said yes.\nI was happy but nervous... Where would that lead us?`,
+    photo: 'photos/june10.jpg', special: true
+  },
+  {
+    id: 's5', sortDate: '2026-06-11', displayDate: 'June 11, 2026',
+    title: 'The Wise Cat 🐱',
+    body: `I built you a silly little LLM app — a wise cat full of purr-fect wisdom.\nWe spent the whole evening asking it stupid questions: from the most handsome man on earth to the CCP.`,
+    photo: 'photos/june11.jpg', special: false
+  },
+  {
+    id: 's6', sortDate: '2026-06-12', displayDate: 'June 12, 2026',
+    title: 'Our First Date',
+    body: `That was our first date. I was full of awe. And then I saw you by the station - charming and cute.\nPlans went sideways, and we went to a place of your choice. And the conversation flew....\nCoffee, coctails, ice cream, and our chat on the bench by your place.\nI didn't want to say goodbye, and turned like 5 times.\nIt was a magical day.\n\nWe didn't take any photos, so here is my face when talking to my friend right after the date :D`,
+    photo: 'photos/june12.jpg', special: false
+  },
+  {
+    id: 's7', sortDate: '2026-06-16', displayDate: 'June 16, 2026',
+    title: 'The "Humiliation Pizza"',
+    body: `You'd finished with your presentation, and I'd finished with my Dutch class. And somehow randomly, we ended up at the pizza place. You thought you looked "lame", but you looked as wonderful as usual.\nYou played around with the Wise Cat app and praised the "humiliation" of the pizza (which was supposed to be "humidity" and, in fact, soakiness). Finally, we had quite an open talk on the way back home. I tried to teach you to give me a "Russian" hug, which felt a bit awkward :D\nAnd... it was yet another lovely date.`,
+    photo: 'photos/june16.jpeg', special: false
+  }
+];
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+const KEY = 'our-timeline-v1';
+let moments = [];
+let editingId = null;
+let pendingPhoto = null;        // base64 of newly picked photo
+let clearingPhoto = false;      // user hit "remove photo"
+let pendingVideoBlob = null;    // newly picked video (Blob) — stored in IndexedDB
+let pendingVideoPoster = null;  // poster frame (dataURL) for the picked video
+let clearingVideo = false;      // user hit "remove video"
+let cardVideoUrls = [];         // object URLs to revoke on re-render
+
+/* ── Video blob storage (IndexedDB — localStorage is far too small for video) ── */
+const MEDIA_DB = 'our-timeline-media';
+const MEDIA_STORE = 'videos';
+let _mediaDb = null;
+function mediaDb() {
+  if (_mediaDb) return _mediaDb;
+  _mediaDb = new Promise((resolve, reject) => {
+    const req = indexedDB.open(MEDIA_DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(MEDIA_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return _mediaDb;
+}
+async function videoPut(id, blob) {
+  const db = await mediaDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MEDIA_STORE, 'readwrite');
+    tx.objectStore(MEDIA_STORE).put(blob, id);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function videoGet(id) {
+  const db = await mediaDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(MEDIA_STORE, 'readonly');
+    const r = tx.objectStore(MEDIA_STORE).get(id);
+    r.onsuccess = () => res(r.result || null);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function videoDel(id) {
+  try {
+    const db = await mediaDb();
+    await new Promise((res) => {
+      const tx = db.transaction(MEDIA_STORE, 'readwrite');
+      tx.objectStore(MEDIA_STORE).delete(id);
+      tx.oncomplete = () => res();
+      tx.onerror = () => res();
+    });
+  } catch (_) {}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    moments = raw ? JSON.parse(raw) : SEED.map(m => ({ ...m }));
+  } catch (e) {
+    moments = SEED.map(m => ({ ...m }));
+  }
+  if (!localStorage.getItem(KEY)) save();
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(moments));
+}
+
+function sorted() {
+  return moments
+    .filter(m => !m.deleted)
+    .sort((a, b) => (a.sortDate || '').localeCompare(b.sortDate || ''));
+}
+
+function nowISO() { return new Date().toISOString(); }
+function notifyChange() { if (window.afterLocalChange) window.afterLocalChange(); }
+
+function uid() {
+  return 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDERING
+══════════════════════════════════════════════════════ */
+function esc(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function photoHtml(photo) {
+  if (!photo) return '';
+  const src = photo.startsWith('data:') ? photo : esc(photo);
+  const onerr = photo.startsWith('data:') ? '' : ' onerror="imgErr(this)"';
+  return `<div class="photo-slot"><img src="${src}" alt="photo" loading="lazy"${onerr} /></div>`;
+}
+
+window.imgErr = function (img) {
+  // Try one extension swap, then give up cleanly
+  if (!img.dataset.swapped) {
+    img.dataset.swapped = '1';
+    const s = img.getAttribute('src');
+    if (/\.jpg$/i.test(s))  { img.src = s.replace(/\.jpg$/i,  '.png');  return; }
+    if (/\.png$/i.test(s))  { img.src = s.replace(/\.png$/i,  '.jpg');  return; }
+    if (/\.jpeg$/i.test(s)) { img.src = s.replace(/\.jpeg$/i, '.jpg');  return; }
+  }
+  const slot = img.closest('.photo-slot');
+  if (slot) slot.remove();
+};
+
+function videoHtml(m) {
+  if (!m.hasVideo) return '';
+  const poster = (m.video && String(m.video).startsWith('data:')) ? ` poster="${m.video}"` : '';
+  return `<div class="video-slot"><video class="card-video" data-vid="${esc(m.id)}" controls playsinline preload="metadata"${poster}></video></div>`;
+}
+
+// Attach video blobs (from IndexedDB) to the <video> elements after render.
+function hydrateVideos(tl) {
+  cardVideoUrls.forEach(u => URL.revokeObjectURL(u));
+  cardVideoUrls = [];
+  tl.querySelectorAll('video.card-video[data-vid]').forEach(vid => {
+    videoGet(vid.getAttribute('data-vid')).then(blob => {
+      if (blob) {
+        const u = URL.createObjectURL(blob);
+        cardVideoUrls.push(u);
+        vid.src = u;
+      }
+    }).catch(() => {});
+  });
+}
+
+function renderTimeline() {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = sorted().map(m => {
+    const sp = m.special;
+    const cardStyle = sp
+      ? 'border-color:#f4a0b070;background:linear-gradient(135deg,rgba(253,232,237,.55),rgba(237,224,247,.45))'
+      : '';
+    const dateStyle = sp ? 'background:var(--rose);color:white' : '';
+    const titleStyle = sp ? 'color:var(--rose)' : '';
+
+    return `
+<article class="moment" data-id="${m.id}">
+  <div class="card" style="${cardStyle}">
+    <div class="card-top">
+      <div class="card-header">
+        <span class="card-date" style="${dateStyle}">${esc(m.displayDate)}</span>
+        <h3 class="card-title" style="${titleStyle}">${esc(m.title)}</h3>
+      </div>
+      <button class="btn-edit" onclick="openEdit('${m.id}')" aria-label="Edit">✏️</button>
+    </div>
+    <div class="card-body">${esc(m.body)}</div>
+    ${photoHtml(m.photo)}
+    ${videoHtml(m)}
+  </div>
+</article>`;
+  }).join('');
+
+  hydrateVideos(tl);
+
+  // Scroll-reveal
+  const obs = new IntersectionObserver(
+    entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+    { threshold: 0.06 }
+  );
+  tl.querySelectorAll('.moment').forEach(el => obs.observe(el));
+}
+
+/* ══════════════════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════════════════ */
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y, mo, d] = iso.split('-').map(Number);
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  return `${months[mo - 1]} ${d}, ${y}`;
+}
+
+function resetMediaState() {
+  pendingPhoto = null; clearingPhoto = false;
+  pendingVideoBlob = null; pendingVideoPoster = null; clearingVideo = false;
+}
+
+function openAdd() {
+  editingId = null; resetMediaState();
+  document.getElementById('modal-title-el').textContent = 'New moment';
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-date').value = today;
+  document.getElementById('f-display-date').value = fmtDate(today);
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-body').value = '';
+  document.getElementById('btn-delete').style.display = 'none';
+  clearPreview();
+  clearVideoPreview();
+  showModal();
+}
+
+window.openEdit = function (id) {
+  const m = moments.find(x => x.id === id);
+  if (!m) return;
+  editingId = id; resetMediaState();
+  document.getElementById('modal-title-el').textContent = 'Edit moment';
+  document.getElementById('f-date').value = m.sortDate || '';
+  document.getElementById('f-display-date').value = m.displayDate || '';
+  document.getElementById('f-title').value = m.title || '';
+  document.getElementById('f-body').value = m.body || '';
+  document.getElementById('btn-delete').style.display = '';
+  if (m.photo) showPreview(m.photo); else clearPreview();
+  if (m.hasVideo) {
+    const poster = (m.video && String(m.video).startsWith('data:')) ? m.video : null;
+    videoGet(id).then(blob => {
+      showVideoPreview(blob ? URL.createObjectURL(blob) : '', poster);
+    }).catch(() => showVideoPreview('', poster));
+  } else {
+    clearVideoPreview();
+  }
+  showModal();
+};
+
+function showModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('f-title').focus(), 340);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function saveModal() {
+  const sortDate    = document.getElementById('f-date').value;
+  const displayDate = document.getElementById('f-display-date').value.trim();
+  const title       = document.getElementById('f-title').value.trim();
+  const body        = document.getElementById('f-body').value.trim();
+
+  if (!sortDate)    { document.getElementById('f-date').focus(); return; }
+  if (!title)       { document.getElementById('f-title').focus(); return; }
+
+  const display = displayDate || fmtDate(sortDate);
+
+  const btn = document.getElementById('btn-save');
+
+  try {
+    if (editingId) {
+      const idx = moments.findIndex(m => m.id === editingId);
+      if (idx !== -1) {
+        const m = moments[idx];
+        m.sortDate    = sortDate;
+        m.displayDate = display;
+        m.title       = title;
+        m.body        = body;
+        if (clearingPhoto)      m.photo = null;
+        else if (pendingPhoto)  m.photo = pendingPhoto;
+
+        if (clearingVideo) {
+          m.hasVideo = false; m.video = null;
+          await videoDel(editingId);
+        } else if (pendingVideoBlob) {
+          btn.textContent = 'Saving…'; btn.disabled = true;
+          await videoPut(editingId, pendingVideoBlob);
+          m.hasVideo = true; m.video = pendingVideoPoster || null;
+        }
+        m.updatedAt = nowISO();
+      }
+    } else {
+      const id = uid();
+      const m = {
+        id, sortDate, displayDate: display, title, body,
+        photo: pendingPhoto || null,
+        hasVideo: !!pendingVideoBlob,
+        video: pendingVideoBlob ? (pendingVideoPoster || null) : null,
+        special: false,
+        updatedAt: nowISO()
+      };
+      if (pendingVideoBlob) {
+        btn.textContent = 'Saving…'; btn.disabled = true;
+        await videoPut(id, pendingVideoBlob);
+      }
+      moments.push(m);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('Could not save the video (it may be too large). The rest was saved.');
+  }
+
+  btn.textContent = 'Save ♡'; btn.disabled = false;
+  save(); renderTimeline(); closeModal();
+  notifyChange();
+}
+
+async function deleteModal() {
+  if (!editingId) return;
+  if (!confirm('Delete this moment? This cannot be undone.')) return;
+  const removingId = editingId;
+  // Tombstone (not hard-delete) so the deletion propagates through sync.
+  const m = moments.find(x => x.id === removingId);
+  if (m) { m.deleted = true; m.updatedAt = nowISO(); m.photo = null; }
+  await videoDel(removingId);
+  save(); renderTimeline(); closeModal();
+  notifyChange();
+}
+
+/* ══════════════════════════════════════════════════════
+   PHOTO
+══════════════════════════════════════════════════════ */
+function showPreview(src) {
+  document.getElementById('preview-img').src = src;
+  document.getElementById('photo-preview').style.display = 'block';
+  document.getElementById('btn-remove-photo').style.display = 'block';
+}
+function clearPreview() {
+  document.getElementById('preview-img').src = '';
+  document.getElementById('photo-preview').style.display = 'none';
+  document.getElementById('btn-remove-photo').style.display = 'none';
+}
+
+document.getElementById('btn-pick-photo').addEventListener('click', () => {
+  document.getElementById('f-photo').click();
+});
+
+document.getElementById('f-photo').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    // Compress before storing
+    const raw = new Image();
+    raw.onload = () => {
+      const MAX = 1400;
+      const scale = Math.min(1, MAX / Math.max(raw.width, raw.height));
+      const c = document.createElement('canvas');
+      c.width  = Math.round(raw.width  * scale);
+      c.height = Math.round(raw.height * scale);
+      c.getContext('2d').drawImage(raw, 0, 0, c.width, c.height);
+      try {
+        pendingPhoto = c.toDataURL('image/jpeg', 0.78);
+      } catch (_) {
+        pendingPhoto = e.target.result; // fallback: uncompressed
+      }
+      clearingPhoto = false;
+      showPreview(pendingPhoto);
+    };
+    raw.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  this.value = '';
+});
+
+document.getElementById('btn-remove-photo').addEventListener('click', () => {
+  pendingPhoto = null; clearingPhoto = true; clearPreview();
+});
+
+/* ══════════════════════════════════════════════════════
+   VIDEO
+══════════════════════════════════════════════════════ */
+function showVideoPreview(src, poster) {
+  const pv = document.getElementById('preview-video');
+  if (poster) pv.poster = poster; else pv.removeAttribute('poster');
+  if (src) pv.src = src; else pv.removeAttribute('src');
+  pv.load();
+  document.getElementById('video-preview').style.display = 'block';
+  document.getElementById('btn-remove-video').style.display = 'block';
+}
+function clearVideoPreview() {
+  const pv = document.getElementById('preview-video');
+  pv.removeAttribute('src'); pv.removeAttribute('poster');
+  try { pv.load(); } catch (_) {}
+  document.getElementById('video-preview').style.display = 'none';
+  document.getElementById('btn-remove-video').style.display = 'none';
+}
+
+// Capture the first frame of a video file as a small JPEG poster.
+function makeVideoPoster(file) {
+  return new Promise(resolve => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.src = url;
+    let done = false;
+    const finish = (poster) => {
+      if (done) return; done = true;
+      URL.revokeObjectURL(url);
+      resolve(poster);
+    };
+    v.onloadeddata = () => {
+      try { v.currentTime = Math.min(0.1, (v.duration || 2) / 2); }
+      catch (_) { drawFrame(); }
+    };
+    v.onseeked = drawFrame;
+    v.onerror = () => finish(null);
+    setTimeout(() => drawFrame(), 3000); // safety fallback
+    function drawFrame() {
+      try {
+        const w = v.videoWidth, h = v.videoHeight;
+        if (!w || !h) return finish(null);
+        const MAX = 1000;
+        const sc = Math.min(1, MAX / Math.max(w, h));
+        const c = document.createElement('canvas');
+        c.width = Math.round(w * sc); c.height = Math.round(h * sc);
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+        finish(c.toDataURL('image/jpeg', 0.72));
+      } catch (_) { finish(null); }
+    }
+  });
+}
+
+document.getElementById('btn-pick-video').addEventListener('click', () => {
+  document.getElementById('f-video').click();
+});
+
+document.getElementById('f-video').addEventListener('change', async function () {
+  const file = this.files[0];
+  this.value = '';
+  if (!file) return;
+  pendingVideoBlob = file;
+  clearingVideo = false;
+  pendingVideoPoster = await makeVideoPoster(file);
+  showVideoPreview(URL.createObjectURL(file), pendingVideoPoster);
+});
+
+document.getElementById('btn-remove-video').addEventListener('click', () => {
+  pendingVideoBlob = null; pendingVideoPoster = null; clearingVideo = true; clearVideoPreview();
+});
+
+// Auto-fill display date from date picker
+document.getElementById('f-date').addEventListener('change', function () {
+  const disp = document.getElementById('f-display-date');
+  if (!disp.dataset.manual) disp.value = fmtDate(this.value);
+});
+document.getElementById('f-display-date').addEventListener('input', function () {
+  this.dataset.manual = '1'; // user typed — don't override
+});
+
+/* ══════════════════════════════════════════════════════
+   PDF EXPORT
+══════════════════════════════════════════════════════ */
+async function imgToBase64(src) {
+  if (!src) return null;
+  if (src.startsWith('data:')) return src;
+  return new Promise(resolve => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const MAX = 1200;
+      const sc = Math.min(1, MAX / Math.max(img.naturalWidth || 1, img.naturalHeight || 1));
+      const c = document.createElement('canvas');
+      c.width  = Math.round(img.naturalWidth  * sc);
+      c.height = Math.round(img.naturalHeight * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      try { resolve(c.toDataURL('image/jpeg', 0.78)); }
+      catch (_) { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+async function exportPDF() {
+  const btn = document.getElementById('btn-export');
+  btn.textContent = '⏳'; btn.disabled = true;
+
+  try {
+    // Lazy-load jsPDF
+    if (!window.jspdf) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'vendor/jspdf.umd.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const PW = 210, MG = 14, CW = PW - MG * 2;
+    let y = MG;
+
+    const newPage = () => { doc.addPage(); y = MG; };
+    const need = h => { if (y + h > 282) newPage(); };
+
+    // ── Cover ──
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24); doc.setTextColor(232, 118, 142);
+    doc.text('Our Timeline', PW / 2, y, { align: 'center' }); y += 7;
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9); doc.setTextColor(176, 128, 144);
+    doc.text('every little moment that brought us here', PW / 2, y, { align: 'center' }); y += 8;
+    doc.setDrawColor(244, 160, 176); doc.setLineWidth(0.4);
+    doc.line(MG, y, PW - MG, y); y += 8;
+
+    for (const m of sorted()) {
+      need(22);
+
+      // Date pill
+      doc.setFillColor(252, 232, 237); doc.setDrawColor(244, 160, 176);
+      doc.roundedRect(MG, y - 3.5, 54, 6, 3, 3, 'FD');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+      doc.setTextColor(232, 118, 142);
+      doc.text((m.displayDate || '').toUpperCase(), MG + 3, y + 0.5);
+      y += 7;
+
+      // Title
+      need(8);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+      doc.setTextColor(61, 31, 44);
+      const tLines = doc.splitTextToSize(m.title || '', CW);
+      doc.text(tLines, MG, y); y += tLines.length * 5.5 + 2;
+
+      // Body
+      if (m.body) {
+        need(8);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+        doc.setTextColor(122, 79, 96);
+        const bLines = doc.splitTextToSize(m.body, CW);
+        const bh = bLines.length * 4.3;
+        if (y + bh > 282) newPage();
+        doc.text(bLines, MG, y); y += bh + 3;
+      }
+
+      // Photo
+      if (m.photo) {
+        try {
+          const imgData = await imgToBase64(m.photo);
+          if (imgData) {
+            const maxH = 70;
+            if (y + maxH > 282) newPage();
+            doc.addImage(imgData, 'JPEG', MG, y, CW, maxH, undefined, 'FAST');
+            y += maxH + 4;
+          }
+        } catch (_) {}
+      }
+
+      // Video — shown as its poster frame with a play badge
+      if (m.hasVideo && m.video) {
+        try {
+          const posterData = await imgToBase64(m.video);
+          if (posterData) {
+            const maxH = 70;
+            if (y + maxH > 282) newPage();
+            doc.addImage(posterData, 'JPEG', MG, y, CW, maxH, undefined, 'FAST');
+            // Play badge in the centre
+            const cx = MG + CW / 2, cy = y + maxH / 2;
+            doc.setFillColor(232, 118, 142);
+            doc.circle(cx, cy, 7, 'F');
+            doc.setFillColor(255, 255, 255);
+            doc.triangle(cx - 2.4, cy - 3.6, cx - 2.4, cy + 3.6, cx + 4.2, cy, 'F');
+            y += maxH + 4;
+          }
+        } catch (_) {}
+      }
+
+      // Divider
+      y += 4; need(1);
+      doc.setDrawColor(244, 160, 176); doc.setLineWidth(0.2);
+      doc.setLineDashPattern([1.5, 1.5], 0);
+      doc.line(MG, y, PW - MG, y);
+      doc.setLineDashPattern([], 0); y += 6;
+    }
+
+    const filename = 'our-timeline.pdf';
+    if (window.AndroidBridge && typeof AndroidBridge.savePdf === 'function') {
+      // WebViews ignore blob downloads — hand the bytes to native code to save.
+      const datauri = doc.output('datauristring', { filename });
+      AndroidBridge.savePdf(datauri, filename);
+    } else {
+      doc.save(filename);
+    }
+  } catch (e) {
+    console.error(e);
+    alert('PDF export failed. Please try again.');
+  }
+
+  btn.textContent = '📄'; btn.disabled = false;
+}
+
+/* ══════════════════════════════════════════════════════
+   EVENTS
+══════════════════════════════════════════════════════ */
+document.getElementById('fab').addEventListener('click', openAdd);
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('btn-save').addEventListener('click', saveModal);
+document.getElementById('btn-delete').addEventListener('click', deleteModal);
+document.getElementById('btn-export').addEventListener('click', exportPDF);
+
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ══════════════════════════════════════════════════════
+   STARS
+══════════════════════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  const N = 90;
+  let stars = [], raf;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = Math.max(document.body.scrollHeight, window.innerHeight);
+  }
+
+  function mkStar() {
+    return {
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.3 + 0.3,
+      a: Math.random(),
+      da: (Math.random() * 0.003 + 0.001) * (Math.random() < .5 ? 1 : -1),
+      hue: [340, 280, 30][Math.floor(Math.random() * 3)]
+    };
+  }
+
+  function init() { resize(); stars = Array.from({ length: N }, mkStar); }
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.a += s.da;
+      if (s.a > 1 || s.a < 0) s.da *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${s.hue},80%,75%,${s.a})`;
+      ctx.fill();
+    });
+    raf = requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', () => { cancelAnimationFrame(raf); init(); tick(); });
+  init(); tick();
+})();
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+load();
+renderTimeline();
+</script>
+
+<!-- ══════════════════════════════════════════════════════
+     GITHUB SYNC  (dormant until a repo + token are entered)
+══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  const CFG_KEY = 'our-timeline-sync';
+  const FILE = 'data/timeline.json';
+  let cfg = loadCfg();
+  let syncing = false, pushTimer = null;
+
+  function loadCfg() { try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); } catch (_) { return null; } }
+  function saveCfg(c) { cfg = c; localStorage.setItem(CFG_KEY, JSON.stringify(c)); }
+  function configured() { return !!(cfg && cfg.owner && cfg.repo && cfg.token); }
+  function branch() { return (cfg && cfg.branch) || 'main'; }
+
+  function apiUrl(p) { return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${p}`; }
+  function hdrs(extra) {
+    return Object.assign({
+      'Authorization': 'Bearer ' + cfg.token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    }, extra || {});
+  }
+
+  function b64encode(text) { return btoa(unescape(encodeURIComponent(text))); }
+  function b64decode(b64)  { return decodeURIComponent(escape(atob((b64 || '').replace(/\s/g, '')))); }
+  function blobToDataURL(blob) { return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); }); }
+
+  // ── GitHub REST: read the timeline file → { json, sha } (sha null if absent) ──
+  async function getFile() {
+    const u = apiUrl(FILE) + '?ref=' + encodeURIComponent(branch());
+    const res = await fetch(u, { headers: hdrs() });
+    if (res.status === 404) return { json: null, sha: null };
+    if (!res.ok) throw new Error('Read failed (' + res.status + ')');
+    const meta = await res.json();
+    let text;
+    if (meta.encoding === 'base64' && meta.content) {
+      text = b64decode(meta.content);
+    } else {
+      const r2 = await fetch(u, { headers: hdrs({ 'Accept': 'application/vnd.github.raw' }) });
+      text = await r2.text();
+    }
+    let json = null; try { json = JSON.parse(text); } catch (_) {}
+    return { json, sha: meta.sha };
+  }
+
+  // ── GitHub REST: write the timeline file (create or update) ──
+  async function putFile(obj, sha) {
+    const body = { message: 'Update timeline', content: b64encode(JSON.stringify(obj, null, 2)), branch: branch() };
+    if (sha) body.sha = sha;
+    const res = await fetch(apiUrl(FILE), { method: 'PUT', headers: hdrs({ 'Content-Type': 'application/json' }), body: JSON.stringify(body) });
+    if (res.status === 409 || res.status === 422) { const e = new Error('conflict'); e.conflict = true; throw e; }
+    if (!res.ok) throw new Error('Write failed (' + res.status + ')');
+    return res.json();
+  }
+
+  // ── Merge remote moments into local: newest updatedAt wins, tombstones respected,
+  //    local-only video fields preserved ──
+  function mergeInto(localArr, remoteArr) {
+    const byId = {};
+    localArr.forEach(m => { byId[m.id] = m; });
+    (remoteArr || []).forEach(r => {
+      const l = byId[r.id];
+      if (!l) { byId[r.id] = Object.assign({}, r); return; }
+      if ((r.updatedAt || '') > (l.updatedAt || '')) {
+        byId[r.id] = Object.assign({}, r, { hasVideo: l.hasVideo, video: l.video });
+      }
+    });
+    return Object.values(byId);
+  }
+
+  // Seed photos are bundled by relative path; inline them as base64 so the hosted
+  // page (which has no bundled photos) can display them too.
+  const seedCache = {};
+  async function portablePhoto(photo) {
+    if (!photo) return null;
+    if (photo.startsWith('data:')) return photo;
+    if (photo.startsWith('photos/')) {
+      if (seedCache[photo]) return seedCache[photo];
+      try {
+        const res = await fetch(photo);
+        const dataUrl = await blobToDataURL(await res.blob());
+        seedCache[photo] = dataUrl; return dataUrl;
+      } catch (_) { return null; }
+    }
+    return photo;
+  }
+
+  // Build the shared payload (strip local-only video fields).
+  async function toSyncMoments() {
+    const out = [];
+    for (const m of moments) {
+      const sm = {
+        id: m.id, sortDate: m.sortDate, displayDate: m.displayDate,
+        title: m.title, body: m.body,
+        photo: await portablePhoto(m.photo),
+        special: !!m.special, updatedAt: m.updatedAt || nowISO()
+      };
+      if (m.deleted) sm.deleted = true;
+      out.push(sm);
+    }
+    return out;
+  }
+
+  // Pull + merge, then push the merged result. Both directions converge.
+  async function syncNow() {
+    if (!configured() || syncing) return;
+    syncing = true; setStatus('Syncing…', true);
+    try {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const { json, sha } = await getFile();
+        if (json && json.moments) { moments = mergeInto(moments, json.moments); save(); renderTimeline(); }
+        const payload = { version: 1, updatedAt: nowISO(), moments: await toSyncMoments() };
+        try {
+          await putFile(payload, sha);
+          setStatus('Synced ✓ ' + new Date().toLocaleTimeString(), false);
+          syncing = false; return;
+        } catch (e) {
+          if (e.conflict) continue;        // someone else wrote first — re-pull and retry
+          throw e;
+        }
+      }
+      setStatus('Sync busy — try again', false);
+    } catch (e) {
+      console.error(e); setStatus('Sync failed: ' + (e.message || e), false);
+    } finally { syncing = false; }
+  }
+
+  // Debounced push after a local edit.
+  window.afterLocalChange = function () {
+    if (!configured()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(syncNow, 900);
+  };
+
+  /* ── UI: ⟳ sync + ⚙ settings buttons, injected into the header ── */
+  function setStatus(msg, busy) {
+    const el = document.getElementById('sync-status'); if (el) el.textContent = msg || '';
+    const b = document.getElementById('btn-sync'); if (b) b.textContent = busy ? '…' : '⟳';
+  }
+
+  function buildUI() {
+    const header = document.getElementById('app-header');
+    const exportBtn = document.getElementById('btn-export');
+
+    const syncBtn = document.createElement('button');
+    syncBtn.className = 'hdr-btn'; syncBtn.id = 'btn-sync'; syncBtn.title = 'Sync now'; syncBtn.textContent = '⟳';
+    syncBtn.addEventListener('click', () => { if (configured()) syncNow(); else openSettings(); });
+
+    const gearBtn = document.createElement('button');
+    gearBtn.className = 'hdr-btn'; gearBtn.id = 'btn-settings'; gearBtn.title = 'Sync settings'; gearBtn.textContent = '⚙';
+    gearBtn.addEventListener('click', openSettings);
+
+    header.insertBefore(syncBtn, exportBtn);
+    header.insertBefore(gearBtn, exportBtn);
+
+    const ov = document.createElement('div');
+    ov.id = 'sync-overlay';
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(61,31,44,.45);z-index:300;display:none;align-items:center;justify-content:center;padding:1.2rem;';
+    ov.innerHTML =
+      '<div style="background:var(--cream);width:100%;max-width:440px;border-radius:20px;padding:1.4rem;max-height:90vh;overflow:auto;font-family:Lato,sans-serif">' +
+        '<h2 style="font-family:\'Playfair Display\',serif;font-weight:400;color:var(--text-dark);margin-bottom:.3rem">Sync with GitHub</h2>' +
+        '<p style="font-size:.82rem;color:var(--text-mid);margin-bottom:1rem;line-height:1.5">Connect a private repo so you and Yiqian share the same timeline. Your token is stored only on this device.</p>' +
+        field('Repo owner (GitHub username)', 's-owner', 'e.g. ' + (cfg && cfg.owner || 'your-username')) +
+        field('Repo name', 's-repo', 'e.g. our-timeline') +
+        field('Branch', 's-branch', 'main') +
+        field('Access token (fine-grained)', 's-token', 'github_pat_…', 'password') +
+        '<p id="sync-status" style="font-size:.78rem;color:var(--text-soft);min-height:1.1em;margin:.2rem 0 1rem"></p>' +
+        '<div style="display:flex;gap:.6rem">' +
+          '<button id="s-cancel" style="flex:0 0 auto;padding:.7rem 1.1rem;border:1.5px solid #e8768e55;color:var(--rose);background:none;border-radius:100px;font-weight:700;font-family:Lato">Close</button>' +
+          '<button id="s-save" style="flex:1;padding:.8rem;border:none;border-radius:100px;background:linear-gradient(135deg,var(--rose),#c9a0dc);color:#fff;font-weight:700;font-family:Lato">Save &amp; Sync</button>' +
+        '</div>' +
+        '<p style="font-size:.72rem;color:var(--text-soft);margin-top:1rem;line-height:1.5">Token needs <b>Contents: Read &amp; write</b> on this one repo. See SETUP.md.</p>' +
+      '</div>';
+    document.body.appendChild(ov);
+
+    ov.addEventListener('click', e => { if (e.target === ov) ov.style.display = 'none'; });
+    document.getElementById('s-cancel').addEventListener('click', () => { ov.style.display = 'none'; });
+    document.getElementById('s-save').addEventListener('click', () => {
+      const c = {
+        owner: val('s-owner'), repo: val('s-repo'),
+        branch: val('s-branch') || 'main', token: val('s-token')
+      };
+      if (!c.owner || !c.repo || !c.token) { setStatus('Please fill owner, repo and token.', false); return; }
+      saveCfg(c);
+      syncNow();
+    });
+
+    function field(label, id, ph, type) {
+      return '<label style="display:block;font-size:.72rem;font-weight:700;color:var(--text-soft);letter-spacing:.08em;text-transform:uppercase;margin:.1rem 0 .3rem">' + label + '</label>' +
+        '<input id="' + id + '" type="' + (type || 'text') + '" placeholder="' + ph + '" autocapitalize="off" autocorrect="off" spellcheck="false" ' +
+        'style="width:100%;padding:.7rem .9rem;border:1.5px solid #ddb8c5;border-radius:12px;background:#fff;font-size:.9rem;margin-bottom:.9rem;font-family:Lato" />';
+    }
+  }
+
+  function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  function openSettings() {
+    const ov = document.getElementById('sync-overlay');
+    document.getElementById('s-owner').value = (cfg && cfg.owner) || '';
+    document.getElementById('s-repo').value = (cfg && cfg.repo) || '';
+    document.getElementById('s-branch').value = (cfg && cfg.branch) || 'main';
+    document.getElementById('s-token').value = (cfg && cfg.token) || '';
+    setStatus(configured() ? 'Connected.' : '', false);
+    ov.style.display = 'flex';
+  }
+
+  // ── Boot ──
+  buildUI();
+  if (configured()) setTimeout(syncNow, 400);
+  let lastVis = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && configured() && Date.now() - lastVis > 15000) {
+      lastVis = Date.now(); syncNow();
+    }
+  });
+})();
+</script>
+</body>
+</html>
