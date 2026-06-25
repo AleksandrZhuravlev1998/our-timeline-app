@@ -366,6 +366,62 @@
       border-radius: 10px; background: #000;
     }
 
+    /* Author selector (Who is writing?) */
+    .author-row { display: flex; gap: 0.6rem; }
+    .author-btn {
+      flex: 1; padding: 0.65rem; border: 1.5px solid #ddb8c5;
+      border-radius: 12px; background: #fff; cursor: pointer;
+      font-family: 'Lato', sans-serif; font-size: 0.92rem; color: var(--text-mid);
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      transition: border-color 0.18s, background 0.18s;
+    }
+    .author-btn.active { border-color: var(--rose); background: #fde8ed; color: var(--text-dark); font-weight: 700; }
+
+    /* Moment author badge */
+    .moment-author { font-size: 0.95rem; margin-left: 0.4rem; vertical-align: middle; }
+
+    /* Side-note modal (reuses the bottom-sheet look) */
+    #note-overlay {
+      position: fixed; inset: 0; background: rgba(61,31,44,0.45);
+      z-index: 210; display: flex; align-items: flex-end;
+      opacity: 0; visibility: hidden; transition: opacity 0.28s, visibility 0.28s;
+    }
+    #note-overlay.open { opacity: 1; visibility: visible; }
+    #note-overlay .sheet {
+      background: var(--cream); width: 100%; max-height: 93vh;
+      border-radius: 22px 22px 0 0; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+    }
+    #note-overlay.open .sheet { transform: translateY(0); }
+    @media (min-width: 600px) {
+      #note-overlay { align-items: center; }
+      #note-overlay .sheet { max-width: 500px; margin: 0 auto; border-radius: 22px; max-height: 88vh; }
+    }
+
+    /* Side notes */
+    .notes { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .note {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      background: #fbeef266; border: 1px solid #f4a0b026;
+      border-radius: 12px; padding: 0.55rem 0.7rem;
+    }
+    .note-emoji { font-size: 1rem; line-height: 1.5; flex-shrink: 0; }
+    .note-text { flex: 1; font-size: 0.88rem; line-height: 1.6; color: var(--text-mid); white-space: pre-line; min-width: 0; }
+    .note-del {
+      background: none; border: none; cursor: pointer; color: var(--text-soft);
+      font-size: 1rem; line-height: 1; padding: 0 0.2rem; flex-shrink: 0; opacity: 0.5;
+    }
+    .note-del:active { opacity: 1; }
+    .add-note-btn {
+      align-self: flex-start; background: none; border: 1px dashed #ddb8c5;
+      border-radius: 100px; padding: 0.4rem 0.85rem; cursor: pointer;
+      font-family: 'Lato', sans-serif; font-size: 0.78rem; color: var(--text-soft);
+      margin-top: 0.1rem;
+    }
+    .add-note-btn:active { border-color: var(--rose); color: var(--rose); }
+
     /* Modal footer */
     .modal-ftr {
       padding: 0.9rem 1.4rem 1.6rem;
@@ -445,6 +501,13 @@
     </div>
     <div class="modal-body">
       <div class="field">
+        <label>Who is writing?</label>
+        <div class="author-row" id="moment-author">
+          <button type="button" class="author-btn" data-author="sasha">🦊 Sasha</button>
+          <button type="button" class="author-btn" data-author="yiqian">🐱 Yiqian</button>
+        </div>
+      </div>
+      <div class="field">
         <label>Date</label>
         <div class="date-row">
           <input type="date" id="f-date" title="Pick date for sorting" />
@@ -481,6 +544,33 @@
     <div class="modal-ftr">
       <button id="btn-delete" style="display:none">Delete</button>
       <button id="btn-save">Save ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SIDE-NOTE MODAL ══ -->
+<div id="note-overlay" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <h2 id="note-title-el">Add a note</h2>
+      <button id="note-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Who is writing?</label>
+        <div class="author-row" id="note-author">
+          <button type="button" class="author-btn" data-author="sasha">🦊 Sasha</button>
+          <button type="button" class="author-btn" data-author="yiqian">🐱 Yiqian</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="note-body">Your perspective</label>
+        <textarea id="note-body" placeholder="Add your side of this moment…"></textarea>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button id="note-save">Add ♡</button>
     </div>
   </div>
 </div>
@@ -617,6 +707,34 @@ function notifyChange() { if (window.afterLocalChange) window.afterLocalChange()
 function uid() {
   return 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
+function noteUid() {
+  return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/* ══════════════════════════════════════════════════════
+   AUTHORSHIP  (🦊 Sasha / 🐱 Yiqian)
+══════════════════════════════════════════════════════ */
+const AUTHORS = {
+  sasha:  { name: 'Sasha',  emoji: '🦊' },
+  yiqian: { name: 'Yiqian', emoji: '🐱' }
+};
+// Legacy moments (created before this feature) are all Sasha's.
+function authorOf(m)      { return (m && m.author) || 'sasha'; }
+function authorEmoji(key) { return (AUTHORS[key] || AUTHORS.sasha).emoji; }
+function authorName(key)  { return (AUTHORS[key] || AUTHORS.sasha).name; }
+function lastAuthor()     { return localStorage.getItem('last-author') || 'sasha'; }
+function setLastAuthor(k) { try { localStorage.setItem('last-author', k); } catch (_) {} }
+
+// Highlight the chosen button inside an author-selector row.
+function setAuthorSel(rowId, key) {
+  document.querySelectorAll('#' + rowId + ' .author-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.author === key);
+  });
+}
+
+let pendingAuthor = 'sasha';       // author chosen in the moment modal
+let pendingNoteAuthor = 'sasha';   // author chosen in the note modal
+let currentNoteMomentId = null;
 
 /* ══════════════════════════════════════════════════════
    RENDERING
@@ -653,6 +771,20 @@ function videoHtml(m) {
   return `<div class="video-slot"><video class="card-video" data-vid="${esc(m.id)}" controls playsinline preload="metadata"${poster}></video></div>`;
 }
 
+function notesHtml(m) {
+  const notes = (m.notes || [])
+    .filter(n => !n.deleted)
+    .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+  let html = '<div class="notes">';
+  notes.forEach(n => {
+    html += `<div class="note"><span class="note-emoji" title="${esc(authorName(n.author))}">${authorEmoji(n.author)}</span>` +
+            `<span class="note-text">${esc(n.body)}</span>` +
+            `<button class="note-del" onclick="deleteNote('${m.id}','${n.id}')" aria-label="Delete note">×</button></div>`;
+  });
+  html += `<button class="add-note-btn" onclick="openNote('${m.id}')">＋ Add a note</button></div>`;
+  return html;
+}
+
 // Attach video blobs (from IndexedDB) to the <video> elements after render.
 function hydrateVideos(tl) {
   cardVideoUrls.forEach(u => URL.revokeObjectURL(u));
@@ -683,7 +815,7 @@ function renderTimeline() {
   <div class="card" style="${cardStyle}">
     <div class="card-top">
       <div class="card-header">
-        <span class="card-date" style="${dateStyle}">${esc(m.displayDate)}</span>
+        <span class="card-date" style="${dateStyle}">${esc(m.displayDate)}</span><span class="moment-author" title="${esc(authorName(authorOf(m)))}">${authorEmoji(authorOf(m))}</span>
         <h3 class="card-title" style="${titleStyle}">${esc(m.title)}</h3>
       </div>
       <button class="btn-edit" onclick="openEdit('${m.id}')" aria-label="Edit">✏️</button>
@@ -691,6 +823,7 @@ function renderTimeline() {
     <div class="card-body">${esc(m.body)}</div>
     ${photoHtml(m.photo)}
     ${videoHtml(m)}
+    ${notesHtml(m)}
   </div>
 </article>`;
   }).join('');
@@ -724,6 +857,8 @@ function resetMediaState() {
 function openAdd() {
   editingId = null; resetMediaState();
   document.getElementById('modal-title-el').textContent = 'New moment';
+  pendingAuthor = lastAuthor();
+  setAuthorSel('moment-author', pendingAuthor);
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('f-date').value = today;
   document.getElementById('f-display-date').value = fmtDate(today);
@@ -740,6 +875,8 @@ window.openEdit = function (id) {
   if (!m) return;
   editingId = id; resetMediaState();
   document.getElementById('modal-title-el').textContent = 'Edit moment';
+  pendingAuthor = authorOf(m);
+  setAuthorSel('moment-author', pendingAuthor);
   document.getElementById('f-date').value = m.sortDate || '';
   document.getElementById('f-display-date').value = m.displayDate || '';
   document.getElementById('f-title').value = m.title || '';
@@ -790,6 +927,7 @@ async function saveModal() {
         m.displayDate = display;
         m.title       = title;
         m.body        = body;
+        m.author      = pendingAuthor;
         if (clearingPhoto)      m.photo = null;
         else if (pendingPhoto)  m.photo = pendingPhoto;
 
@@ -807,6 +945,8 @@ async function saveModal() {
       const id = uid();
       const m = {
         id, sortDate, displayDate: display, title, body,
+        author: pendingAuthor,
+        notes: [],
         photo: pendingPhoto || null,
         hasVideo: !!pendingVideoBlob,
         video: pendingVideoBlob ? (pendingVideoPoster || null) : null,
@@ -825,6 +965,7 @@ async function saveModal() {
   }
 
   btn.textContent = 'Save ♡'; btn.disabled = false;
+  setLastAuthor(pendingAuthor);
   save(); renderTimeline(); closeModal();
   notifyChange();
 }
@@ -962,6 +1103,67 @@ document.getElementById('btn-remove-video').addEventListener('click', () => {
   pendingVideoBlob = null; pendingVideoPoster = null; clearingVideo = true; clearVideoPreview();
 });
 
+/* ══════════════════════════════════════════════════════
+   AUTHOR SELECTORS + SIDE NOTES
+══════════════════════════════════════════════════════ */
+document.getElementById('moment-author').addEventListener('click', e => {
+  const b = e.target.closest('.author-btn'); if (!b) return;
+  pendingAuthor = b.dataset.author; setAuthorSel('moment-author', pendingAuthor);
+});
+document.getElementById('note-author').addEventListener('click', e => {
+  const b = e.target.closest('.author-btn'); if (!b) return;
+  pendingNoteAuthor = b.dataset.author; setAuthorSel('note-author', pendingNoteAuthor);
+});
+
+function showNoteModal() {
+  document.getElementById('note-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('note-body').focus(), 340);
+}
+function closeNoteModal() {
+  document.getElementById('note-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+window.openNote = function (momentId) {
+  currentNoteMomentId = momentId;
+  pendingNoteAuthor = lastAuthor();
+  setAuthorSel('note-author', pendingNoteAuthor);
+  document.getElementById('note-body').value = '';
+  showNoteModal();
+};
+
+function saveNote() {
+  const body = document.getElementById('note-body').value.trim();
+  if (!body) { document.getElementById('note-body').focus(); return; }
+  const m = moments.find(x => x.id === currentNoteMomentId);
+  if (!m) { closeNoteModal(); return; }
+  if (!m.notes) m.notes = [];
+  m.notes.push({
+    id: noteUid(), author: pendingNoteAuthor, body,
+    createdAt: nowISO(), updatedAt: nowISO()
+  });
+  setLastAuthor(pendingNoteAuthor);
+  save(); renderTimeline(); closeNoteModal();
+  notifyChange();
+}
+
+window.deleteNote = function (momentId, noteId) {
+  if (!confirm('Delete this note?')) return;
+  const m = moments.find(x => x.id === momentId);
+  if (!m || !m.notes) return;
+  const n = m.notes.find(x => x.id === noteId);
+  if (n) { n.deleted = true; n.updatedAt = nowISO(); n.body = ''; }  // tombstone so the delete syncs
+  save(); renderTimeline();
+  notifyChange();
+};
+
+document.getElementById('note-save').addEventListener('click', saveNote);
+document.getElementById('note-close').addEventListener('click', closeNoteModal);
+document.getElementById('note-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('note-overlay')) closeNoteModal();
+});
+
 // Auto-fill display date from date picker
 document.getElementById('f-date').addEventListener('change', function () {
   const disp = document.getElementById('f-display-date');
@@ -1044,7 +1246,12 @@ async function exportPDF() {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
       doc.setTextColor(61, 31, 44);
       const tLines = doc.splitTextToSize(m.title || '', CW);
-      doc.text(tLines, MG, y); y += tLines.length * 5.5 + 2;
+      doc.text(tLines, MG, y); y += tLines.length * 5.5 + 1;
+
+      // Author
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5);
+      doc.setTextColor(176, 128, 144);
+      doc.text('by ' + authorName(authorOf(m)), MG, y); y += 4;
 
       // Body
       if (m.body) {
@@ -1055,6 +1262,22 @@ async function exportPDF() {
         const bh = bLines.length * 4.3;
         if (y + bh > 282) newPage();
         doc.text(bLines, MG, y); y += bh + 3;
+      }
+
+      // Side notes (other person's perspective)
+      const pdfNotes = (m.notes || [])
+        .filter(n => !n.deleted)
+        .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+      for (const n of pdfNotes) {
+        need(8);
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
+        doc.setTextColor(150, 110, 125);
+        const nLines = doc.splitTextToSize(authorName(n.author) + ': ' + (n.body || ''), CW - 5);
+        const nh = nLines.length * 4.1;
+        if (y + nh > 282) newPage();
+        doc.setFillColor(244, 160, 176);
+        doc.rect(MG, y - 3, 0.8, nh, 'F');           // little left accent bar
+        doc.text(nLines, MG + 4, y); y += nh + 2.5;
       }
 
       // Photo
@@ -1126,7 +1349,7 @@ document.getElementById('modal-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-overlay')) closeModal();
 });
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeNoteModal(); } });
 
 /* ══════════════════════════════════════════════════════
    STARS
@@ -1245,15 +1468,29 @@ renderTimeline();
 
   // ── Merge remote moments into local: newest updatedAt wins, tombstones respected,
   //    local-only video fields preserved ──
+  function mergeNotes(a, b) {
+    const byId = {};
+    (a || []).forEach(n => { byId[n.id] = n; });
+    (b || []).forEach(n => {
+      const e = byId[n.id];
+      if (!e || (n.updatedAt || '') > (e.updatedAt || '')) byId[n.id] = n;
+    });
+    return Object.values(byId);
+  }
+
   function mergeInto(localArr, remoteArr) {
     const byId = {};
     localArr.forEach(m => { byId[m.id] = m; });
     (remoteArr || []).forEach(r => {
       const l = byId[r.id];
       if (!l) { byId[r.id] = Object.assign({}, r); return; }
-      if ((r.updatedAt || '') > (l.updatedAt || '')) {
-        byId[r.id] = Object.assign({}, r, { hasVideo: l.hasVideo, video: l.video });
-      }
+      // Scalar fields: newest moment wins (keep local-only video fields).
+      // Notes: union by note-id so both people's perspectives survive.
+      const base = (r.updatedAt || '') > (l.updatedAt || '')
+        ? Object.assign({}, r, { hasVideo: l.hasVideo, video: l.video })
+        : Object.assign({}, l);
+      base.notes = mergeNotes(l.notes, r.notes);
+      byId[r.id] = base;
     });
     return Object.values(byId);
   }
@@ -1282,6 +1519,12 @@ renderTimeline();
       const sm = {
         id: m.id, sortDate: m.sortDate, displayDate: m.displayDate,
         title: m.title, body: m.body,
+        author: authorOf(m),
+        notes: (m.notes || []).map(n => ({
+          id: n.id, author: n.author, body: n.body,
+          createdAt: n.createdAt, updatedAt: n.updatedAt || n.createdAt,
+          ...(n.deleted ? { deleted: true } : {})
+        })),
         photo: await portablePhoto(m.photo),
         special: !!m.special, updatedAt: m.updatedAt || nowISO()
       };
