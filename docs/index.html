@@ -1216,12 +1216,20 @@ renderTimeline();
     const meta = await res.json();
     let text;
     if (meta.encoding === 'base64' && meta.content) {
+      // Small file (<1 MB): the Contents API already returned the content.
       text = b64decode(meta.content);
+    } else if (meta.sha) {
+      // Large file (>1 MB, e.g. once photos are inlined): the Contents API omits
+      // the content, so read the full blob via the Git Blobs API (up to 100 MB).
+      const burl = 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/git/blobs/' + meta.sha;
+      const r2 = await fetch(burl, { headers: hdrs() });
+      if (!r2.ok) throw new Error('Blob read failed (' + r2.status + ')');
+      const blob = await r2.json();
+      text = (blob.encoding === 'base64') ? b64decode(blob.content) : (blob.content || '');
     } else {
-      const r2 = await fetch(u, { headers: hdrs({ 'Accept': 'application/vnd.github.raw' }) });
-      text = await r2.text();
+      throw new Error('Unexpected file response');
     }
-    let json = null; try { json = JSON.parse(text); } catch (_) {}
+    let json = null; try { json = JSON.parse(text); } catch (e) { throw new Error('Timeline file is corrupt'); }
     return { json, sha: meta.sha };
   }
 
