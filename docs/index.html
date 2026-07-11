@@ -637,19 +637,77 @@ let pendingVideoPoster = null;  // poster frame (dataURL) for the picked video
 let clearingVideo = false;      // user hit "remove video"
 let cardVideoUrls = [];         // object URLs to revoke on re-render
 
-/* ── Video blob storage (IndexedDB — localStorage is far too small for video) ── */
+/* ── Media storage in IndexedDB (localStorage is only ~5 MB — far too small for
+      base64 photos/videos; keeping them here avoids the quota error and lets the
+      shared timeline hold many photos). ── */
 const MEDIA_DB = 'our-timeline-media';
 const MEDIA_STORE = 'videos';
+const PHOTO_STORE = 'photos';
 let _mediaDb = null;
 function mediaDb() {
   if (_mediaDb) return _mediaDb;
   _mediaDb = new Promise((resolve, reject) => {
-    const req = indexedDB.open(MEDIA_DB, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(MEDIA_STORE);
+    const req = indexedDB.open(MEDIA_DB, 2);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(MEDIA_STORE)) db.createObjectStore(MEDIA_STORE);
+      if (!db.objectStoreNames.contains(PHOTO_STORE)) db.createObjectStore(PHOTO_STORE);
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
   return _mediaDb;
+}
+
+/* ── Photo cache: base64 data URLs kept in IndexedDB, referenced from a moment as
+      "idb:<hash>" so localStorage stays tiny. Same content → same hash → dedupes. ── */
+function hashStr(s) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (h2 >>> 0).toString(36) + (h1 >>> 0).toString(36) + s.length.toString(36);
+}
+async function photoPut(key, dataUrl) {
+  const db = await mediaDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(PHOTO_STORE, 'readwrite');
+    tx.objectStore(PHOTO_STORE).put(dataUrl, key);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function photoGet(key) {
+  const db = await mediaDb();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(PHOTO_STORE, 'readonly');
+    const r = tx.objectStore(PHOTO_STORE).get(key);
+    r.onsuccess = () => res(r.result || null);
+    r.onerror = () => rej(r.error);
+  });
+}
+// Store a base64 data URL in IndexedDB, return its "idb:<hash>" reference.
+async function stashPhoto(dataUrl) {
+  const key = hashStr(dataUrl);
+  await photoPut(key, dataUrl);
+  return 'idb:' + key;
+}
+// Walk moments; move any inline base64 photo into IndexedDB and replace it with a
+// reference. Keeps localStorage small (used on load and after each remote pull).
+async function normalizePhotos() {
+  let changed = false;
+  for (const m of moments) {
+    if (m.photo && typeof m.photo === 'string' && m.photo.startsWith('data:')) {
+      m.photo = await stashPhoto(m.photo);
+      changed = true;
+    }
+  }
+  if (changed) save();
+  return changed;
 }
 async function videoPut(id, blob) {
   const db = await mediaDb();
@@ -747,13 +805,37 @@ function esc(s) {
 
 function photoHtml(photo) {
   if (!photo) return '';
-  const src = photo.startsWith('data:') ? photo : esc(photo);
-  const onerr = photo.startsWith('data:') ? '' : ' onerror="imgErr(this)"';
-  return `<div class="photo-slot"><img src="${src}" alt="photo" loading="lazy"${onerr} /></div>`;
+  // Render a placeholder; the real src is resolved asynchronously in hydratePhotos
+  // (photos may live in IndexedDB as "idb:<hash>").
+  return `<div class="photo-slot"><img data-photo="${esc(photo)}" alt="photo" loading="lazy" /></div>`;
+}
+
+// Resolve a photo reference to a displayable src.
+async function getPhotoSrc(ref) {
+  if (!ref) return null;
+  if (ref.startsWith('data:'))   return ref;
+  if (ref.startsWith('idb:'))    return await photoGet(ref.slice(4));   // base64 from IndexedDB
+  if (ref.startsWith('photos/')) return ref;                            // bundled seed (phone)
+  return ref;
+}
+
+async function hydratePhotos(tl) {
+  const imgs = tl.querySelectorAll('img[data-photo]');
+  for (const img of imgs) {
+    const ref = img.getAttribute('data-photo');
+    let src = null;
+    try { src = await getPhotoSrc(ref); } catch (_) {}
+    if (src) {
+      if (ref.startsWith('photos/')) img.onerror = () => imgErr(img);   // seed extension-swap
+      img.src = src;
+    } else {
+      const slot = img.closest('.photo-slot'); if (slot) slot.remove();
+    }
+  }
 }
 
 window.imgErr = function (img) {
-  // Try one extension swap, then give up cleanly
+  // Bundled seed photo missing: try one extension swap, then give up cleanly.
   if (!img.dataset.swapped) {
     img.dataset.swapped = '1';
     const s = img.getAttribute('src');
@@ -828,6 +910,7 @@ function renderTimeline() {
 </article>`;
   }).join('');
 
+  hydratePhotos(tl);
   hydrateVideos(tl);
 
   // Scroll-reveal
@@ -882,7 +965,8 @@ window.openEdit = function (id) {
   document.getElementById('f-title').value = m.title || '';
   document.getElementById('f-body').value = m.body || '';
   document.getElementById('btn-delete').style.display = '';
-  if (m.photo) showPreview(m.photo); else clearPreview();
+  if (m.photo) getPhotoSrc(m.photo).then(src => src ? showPreview(src) : clearPreview());
+  else clearPreview();
   if (m.hasVideo) {
     const poster = (m.video && String(m.video).startsWith('data:')) ? m.video : null;
     videoGet(id).then(blob => {
@@ -918,6 +1002,10 @@ async function saveModal() {
 
   const btn = document.getElementById('btn-save');
 
+  // Stash a freshly-picked photo into IndexedDB so localStorage never holds base64.
+  let photoRef = null;
+  if (pendingPhoto) { btn.textContent = 'Saving…'; btn.disabled = true; photoRef = await stashPhoto(pendingPhoto); }
+
   try {
     if (editingId) {
       const idx = moments.findIndex(m => m.id === editingId);
@@ -929,7 +1017,7 @@ async function saveModal() {
         m.body        = body;
         m.author      = pendingAuthor;
         if (clearingPhoto)      m.photo = null;
-        else if (pendingPhoto)  m.photo = pendingPhoto;
+        else if (photoRef)      m.photo = photoRef;
 
         if (clearingVideo) {
           m.hasVideo = false; m.video = null;
@@ -947,7 +1035,7 @@ async function saveModal() {
         id, sortDate, displayDate: display, title, body,
         author: pendingAuthor,
         notes: [],
-        photo: pendingPhoto || null,
+        photo: photoRef || null,
         hasVideo: !!pendingVideoBlob,
         video: pendingVideoBlob ? (pendingVideoPoster || null) : null,
         special: false,
@@ -1220,6 +1308,23 @@ async function exportPDF() {
     const newPage = () => { doc.addPage(); y = MG; };
     const need = h => { if (y + h > 282) newPage(); };
 
+    // Draw an image at its natural aspect ratio, fitted inside maxW×maxH and centred.
+    // Returns the placed rect { x, top, w, h }.
+    const placeImage = (imgData, maxW, maxH) => {
+      let w, h;
+      try {
+        const p = doc.getImageProperties(imgData);
+        const ratio = (p.width && p.height) ? p.width / p.height : 1.5;
+        w = maxW; h = w / ratio;
+        if (h > maxH) { h = maxH; w = h * ratio; }
+      } catch (_) { w = maxW; h = Math.min(maxH, maxW * 0.66); }
+      if (y + h > 282) newPage();
+      const top = y, x = MG + (CW - w) / 2;
+      doc.addImage(imgData, 'JPEG', x, top, w, h, undefined, 'FAST');
+      y = top + h + 4;
+      return { x, top, w, h };
+    };
+
     // ── Cover ──
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24); doc.setTextColor(232, 118, 142);
@@ -1280,34 +1385,25 @@ async function exportPDF() {
         doc.text(nLines, MG + 4, y); y += nh + 2.5;
       }
 
-      // Photo
+      // Photo — kept at its natural aspect ratio
       if (m.photo) {
         try {
-          const imgData = await imgToBase64(m.photo);
-          if (imgData) {
-            const maxH = 70;
-            if (y + maxH > 282) newPage();
-            doc.addImage(imgData, 'JPEG', MG, y, CW, maxH, undefined, 'FAST');
-            y += maxH + 4;
-          }
+          const imgData = await imgToBase64(await getPhotoSrc(m.photo));
+          if (imgData) placeImage(imgData, CW, 150);
         } catch (_) {}
       }
 
-      // Video — shown as its poster frame with a play badge
+      // Video — shown as its poster frame (natural ratio) with a play badge
       if (m.hasVideo && m.video) {
         try {
           const posterData = await imgToBase64(m.video);
           if (posterData) {
-            const maxH = 70;
-            if (y + maxH > 282) newPage();
-            doc.addImage(posterData, 'JPEG', MG, y, CW, maxH, undefined, 'FAST');
-            // Play badge in the centre
-            const cx = MG + CW / 2, cy = y + maxH / 2;
+            const r = placeImage(posterData, CW, 130);
+            const cx = r.x + r.w / 2, cy = r.top + r.h / 2;
             doc.setFillColor(232, 118, 142);
             doc.circle(cx, cy, 7, 'F');
             doc.setFillColor(255, 255, 255);
             doc.triangle(cx - 2.4, cy - 3.6, cx - 2.4, cy + 3.6, cx + 4.2, cy, 'F');
-            y += maxH + 4;
           }
         } catch (_) {}
       }
@@ -1501,6 +1597,7 @@ renderTimeline();
   async function portablePhoto(photo) {
     if (!photo) return null;
     if (photo.startsWith('data:')) return photo;
+    if (photo.startsWith('idb:')) { return (await photoGet(photo.slice(4))) || null; }
     if (photo.startsWith('photos/')) {
       if (seedCache[photo]) return seedCache[photo];
       try {
@@ -1541,7 +1638,11 @@ renderTimeline();
     try {
       for (let attempt = 0; attempt < 4; attempt++) {
         const { json, sha } = await getFile();
-        if (json && json.moments) { moments = mergeInto(moments, json.moments); save(); renderTimeline(); }
+        if (json && json.moments) {
+          moments = mergeInto(moments, json.moments);
+          await normalizePhotos();   // move pulled base64 photos into IndexedDB BEFORE saving
+          save(); renderTimeline();
+        }
         const payload = { version: 1, updatedAt: nowISO(), moments: await toSyncMoments() };
         try {
           await putFile(payload, sha);
@@ -1639,7 +1740,11 @@ renderTimeline();
 
   // ── Boot ──
   buildUI();
-  if (configured()) setTimeout(syncNow, 400);
+  // One-time migration: move any legacy inline base64 photos out of localStorage
+  // into IndexedDB, then render + sync.
+  Promise.resolve(normalizePhotos())
+    .then(() => { renderTimeline(); if (configured()) setTimeout(syncNow, 300); })
+    .catch(() => { if (configured()) setTimeout(syncNow, 300); });
   let lastVis = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && configured() && Date.now() - lastVis > 15000) {
